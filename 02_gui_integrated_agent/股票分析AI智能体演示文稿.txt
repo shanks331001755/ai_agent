@@ -1,0 +1,578 @@
+# 股票分析AI智能体 - 演示文稿
+
+## 幻灯片 1: 封面
+标题: 股票分析AI智能体
+副标题: 从命令行到Web界面的智能分析系统演进
+演讲者: [您的姓名]
+日期: [演讲日期]
+
+图片占位符: [在此处插入系统运行界面截图]
+
+## 幻灯片 2: 项目背景与目标
+标题: 项目背景
+内容:
+- 金融市场分析需求日益增长
+- 传统分析方法的局限性
+- AI技术在金融分析中的应用前景
+
+标题: 项目目标
+内容:
+- 打造智能、高效、易用的股票分析工具
+- 降低专业分析门槛
+- 提高分析效率
+
+图片占位符: [在此处插入金融分析相关示意图]
+
+## 幻灯片 3: 第一阶段 - 命令行版本局限性
+标题: 初期版本 - 命令行操作
+内容:
+- 需要编程知识才能使用
+- 输出格式简单，不易解读
+- 缺乏可视化图表
+- 没有集成的报告生成
+
+核心代码示例:
+```python
+# 早期版本的数据获取方式
+def get_stock_data(symbol):
+    # 基础数据获取
+    data = ak.stock_zh_a_hist(symbol=symbol)
+    return data
+```
+
+图片占位符: [在此处插入命令行版本运行界面截图]
+
+## 幻灯片 4: 第二阶段 - Web界面版本优势
+标题: 现在版本 - Web界面操作
+内容:
+- 无需编程知识，图形界面操作
+- 丰富的可视化图表
+- AI驱动的专业分析
+- 一键生成Word报告
+
+核心代码示例:
+```python
+# Web界面创建
+with gr.Blocks(title="专业量化股票分析系统") as demo:
+    with gr.Row():
+        with gr.Column(scale=3):
+            symbol_input = gr.Textbox(label="股票代码")
+            analyze_btn = gr.Button("开始专业分析")
+        with gr.Column(scale=2):
+            analysis_output = gr.Markdown(label="量化分析报告")
+            trend_chart = gr.Image(label="价格趋势图", type="pil")
+```
+
+图片占位符: [在此处插入Web界面运行截图]
+
+## 幻灯片 5: 核心功能对比
+标题: 功能演进对比
+
+| 功能 | 第一阶段 | 第二阶段 |
+|------|----------|----------|
+| 操作方式 | 命令行输入 | Web界面操作 | 
+| 数据获取 | 基础数据 | 全面数据（实时、历史、基本面、资金流向） |
+| 可视化 | 无 | 专业图表（趋势图、成交量图、技术指标图） |
+| 分析深度 | 简单指标 | AI驱动的多维度分析 |
+| 报告生成 | 无 | 一键Word报告下载 |
+
+图片占位符: [在此处插入功能对比图或流程图]
+
+## 幻灯片 6: 技术架构
+标题: 系统技术架构
+内容:
+- 前端: Gradio Web界面
+- 数据层: AkShare财经数据
+- AI引擎: 通义千问API
+- 文档生成: python-docx
+- 图表绘制: matplotlib
+- 数据处理: pandas, numpy
+
+核心代码示例:
+```python
+# AI分析引擎集成
+def generate_quantitative_analysis(structured_data, user_input):
+    messages = [
+        {"role": "system", "content": QUANT_ANALYST_PROMPT},
+        {"role": "user", "content": data_summary}
+    ]
+    
+    payload = {
+        "model": "qwen-turbo",
+        "input": {"messages": messages},
+        "parameters": {"temperature": 0.3, "max_tokens": 2000}
+    }
+    
+    response = requests.post(QWEN_API_URL, json=payload, headers=headers)
+    return response.json()['output']['text']
+```
+
+图片占位符: [在此处插入技术架构图]
+
+## 幻灯片 7: 数据获取模块
+标题: 多维度数据获取
+内容:
+- 实时行情数据
+- 历史K线数据
+- 基本面数据（营收、净利润、ROE等）
+- 资金流向（主力净流入、超大单流向等）
+- 估值数据（PE、PB、股息率等）
+
+核心代码示例:
+```python
+def get_comprehensive_stock_data(symbol, start_date=None, end_date=None):
+    # 实时行情数据
+    spot_df = ak.stock_zh_a_spot_em()
+    stock_info = spot_df[spot_df['代码'] == symbol.split('.')[0]]
+    
+    # 历史K线数据
+    hist_df = ak.stock_zh_a_hist(symbol=symbol, period="daily",
+                                 start_date=start_date, end_date=end_date, adjust="qfq")
+    
+    # 资金流向数据
+    money_flow = ak.stock_individual_fund_flow(stock=symbol.split('.')[0], market="sh")
+    
+    # 整合数据
+    data = {
+        "实时行情": realtime_data,
+        "历史数据": hist_data,
+        "基本面": fundamental_data,
+        "资金流向": fund_flow_data,
+        "估值": valuation_data,
+        "分析日期": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    }
+    return data, "成功"
+```
+
+图片占位符: [在此处插入数据获取流程图]
+
+## 幻灯片 8: 技术指标计算
+标题: 专业技术指标
+内容:
+- 移动平均线（MA5, MA10, MA20, MA60）
+- RSI相对强弱指标
+- MACD趋势指标
+- 布林带分析
+- 支撑阻力位计算
+
+核心代码示例:
+```python
+def calculate_advanced_technical_indicators(hist_data):
+    if not hist_data or len(hist_data) < 20:
+        return {}
+
+    df = pd.DataFrame(hist_data)
+    close = df['收盘'].values
+    
+    # 移动平均线
+    ma5 = np.mean(close[-5:]) if len(close) >= 5 else None
+    ma10 = np.mean(close[-10:]) if len(close) >= 10 else None
+    ma20 = np.mean(close[-20:]) if len(close) >= 20 else None
+    ma60 = np.mean(close[-60:]) if len(close) >= 60 else None
+
+    # RSI计算
+    def calculate_rsi(prices, period=14):
+        deltas = np.diff(prices)
+        gains = np.where(deltas > 0, deltas, 0)
+        losses = np.where(deltas < 0, -deltas, 0)
+        
+        avg_gain = np.mean(gains[-period:])
+        avg_loss = np.mean(losses[-period:])
+        
+        if avg_loss == 0:
+            return 100
+            
+        rs = avg_gain / avg_loss
+        rsi = 100 - (100 / (1 + rs))
+        return rsi
+
+    rsi14 = calculate_rsi(close)
+    
+    # MACD计算
+    def calculate_macd(prices):
+        ema12 = pd.Series(prices).ewm(span=12, adjust=False).mean().iloc[-1]
+        ema26 = pd.Series(prices).ewm(span=26, adjust=False).mean().iloc[-1]
+        dif = ema12 - ema26
+        dea = pd.Series([dif]).ewm(span=9, adjust=False).mean().iloc[-1]
+        macd_bar = (dif - dea) * 2
+        return dif, dea, macd_bar
+    
+    return {
+        "MA5": round(ma5, 2) if ma5 else None,
+        "MA10": round(ma10, 2) if ma10 else None,
+        "MA20": round(ma20, 2) if ma20 else None,
+        "MA60": round(ma60, 2) if ma60 else None,
+        "RSI14": round(rsi14, 2) if rsi14 else None,
+        "MACD_DIF": round(calculate_macd(close)[0], 4),
+        "MACD_DEA": round(calculate_macd(close)[1], 4),
+        "MACD柱状体": round(calculate_macd(close)[2], 4)
+    }
+```
+
+图片占位符: [在此处插入技术指标示意图或图表]
+
+## 幻灯片 9: AI分析引擎
+标题: AI驱动的专业分析
+内容:
+- 通义千问API集成
+- 专业分析提示词设计
+- 多维度分析输出
+- 结构化报告生成
+
+核心代码示例:
+```python
+QUANT_ANALYST_PROMPT = """你是一名严谨的量化分析师，请基于给定数据，生成一份专业、数据驱动的分析报告。报告必须包含以下清晰的6个模块...
+
+### 📊 行情摘要（Market Overview）
+必须包含：最新价、日内涨跌幅、成交量、成交额、量比、换手率、振幅。
+
+### 📈 关键指标看板（Key Metrics Dashboard）
+以表格或要点形式呈现：
+• 估值指标：市盈率(PE-TTM)、市净率(PB)、股息率
+• 技术指标：5/10/20/60日均线及当前位置、RSI(14)、MACD状态、布林带位置
+• 资金指标：近5日主力资金净流入/出额、北向资金持股变动
+
+[更多模块...]
+"""
+
+def generate_quantitative_analysis(structured_data, user_input, start_date=None, end_date=None):
+    # 构建数据摘要
+    data_summary = f"""
+## 股票分析数据摘要
+### 一、分析时间段
+• 分析区间：{start_date if start_date else '最近'} 至 {end_date if end_date else '当前'}
+• 分析股票：{structured_data['实时行情']['名称']} ({structured_data['实时行情']['代码']})
+[...更多数据...]
+"""
+    
+    # 调用AI生成分析报告
+    messages = [
+        {"role": "system", "content": QUANT_ANALYST_PROMPT},
+        {"role": "user", "content": data_summary}
+    ]
+    
+    # ... API调用代码 ...
+```
+
+图片占位符: [在此处插入AI分析流程图]
+
+## 幻灯片 10: 可视化图表系统
+标题: 专业图表展示
+内容:
+- 价格趋势图（含移动平均线）
+- 成交量图
+- 技术指标图（RSI等）
+- 自适应图表尺寸
+
+核心代码示例:
+```python
+def create_professional_charts(hist_data, stock_name, symbol, start_date=None, end_date=None):
+    charts = {}
+    
+    if not hist_data or len(hist_data) < 10:
+        return charts
+
+    df = pd.DataFrame(hist_data)
+    # 确保数值类型
+    numeric_cols = ['开盘', '收盘', '最高', '最低', '成交量']
+    for col in numeric_cols:
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors='coerce')
+
+    df = df.dropna(subset=['日期', '收盘'])
+
+    # 1. 价格趋势图
+    fig1, ax1 = plt.subplots(figsize=(12, 6))
+    ax1.plot(df['日期'], df['收盘'], 'b-', linewidth=2, label='收盘价')
+
+    # 添加移动平均线
+    if len(df) >= 5:
+        df['MA5'] = df['收盘'].rolling(window=5).mean()
+        ax1.plot(df['日期'], df['MA5'], 'r--', linewidth=1, label='5日均线')
+
+    if len(df) >= 20:
+        df['MA20'] = df['收盘'].rolling(window=20).mean()
+        ax1.plot(df['日期'], df['MA20'], 'g--', linewidth=1, label='20日均线')
+
+    ax1.set_title(f'{stock_name}({symbol}) - 价格趋势', fontsize=14)
+    ax1.set_xlabel('日期')
+    ax1.set_ylabel('价格 (元)')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    buf1 = BytesIO()
+    plt.savefig(buf1, format='png', dpi=100, bbox_inches='tight')
+    buf1.seek(0)
+    charts['trend'] = buf1
+    plt.close(fig1)
+
+    # 2. 成交量图
+    if '成交量' in df.columns:
+        fig2, ax2 = plt.subplots(figsize=(12, 4))
+        colors = ['red' if df['收盘'].iloc[i] >= df['开盘'].iloc[i] else 'green'
+                  for i in range(len(df))]
+        ax2.bar(df['日期'], df['成交量'], color=colors, alpha=0.6)
+        ax2.set_title(f'{stock_name} - 成交量', fontsize=14)
+        ax2.set_xlabel('日期')
+        ax2.set_ylabel('成交量')
+        ax2.grid(True, alpha=0.3)
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        buf2 = BytesIO()
+        plt.savefig(buf2, format='png', dpi=100, bbox_inches='tight')
+        buf2.seek(0)
+        charts['volume'] = buf2
+        plt.close(fig2)
+
+    return charts
+```
+
+图片占位符: [在此处插入实际生成的图表示例]
+
+## 幻灯片 11: Word报告生成
+标题: 一键生成专业报告
+内容:
+- 完整的Word文档格式
+- 包含图表和分析结果
+- 专业报告模板
+- 一键下载功能
+
+核心代码示例:
+```python
+def create_word_report_in_memory(stock_data, analysis_report, charts_data, user_question, symbol, start_date=None, end_date=None):
+    # 创建Word文档
+    doc = Document()
+    
+    # 添加标题
+    title = doc.add_heading(f'{stock_data["实时行情"]["名称"]} ({symbol}) 股票分析报告', 0)
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    # 添加分析时间
+    doc.add_paragraph(f'分析时间: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    doc.add_paragraph(f'分析区间: {start_date if start_date else "最近"} 至 {end_date if end_date else "当前"}')
+    doc.add_paragraph(f'用户问题: {user_question}')
+    
+    # 添加分页
+    doc.add_page_break()
+    
+    # 添加股票基本信息
+    doc.add_heading('股票基本信息', level=1)
+    info_table = doc.add_table(rows=1, cols=2)
+    info_table.style = 'Table Grid'
+    hdr_cells = info_table.rows[0].cells
+    hdr_cells[0].text = '指标'
+    hdr_cells[1].text = '数值'
+    
+    # 添加基本信息行
+    info_data = [
+        ['股票名称', stock_data["实时行情"]["名称"]],
+        ['股票代码', symbol],
+        ['当前价格', f'{stock_data["实时行情"]["最新价"]}元'],
+        ['涨跌幅', f'{stock_data["实时行情"]["涨跌幅"]}%'],
+        ['成交量', f'{stock_data["实时行情"]["成交量"]:,}'],
+        ['成交额', f'{stock_data["实时行情"]["成交额"]:,}'],
+        ['振幅', f'{stock_data["实时行情"]["振幅"]}%'],
+        ['换手率', f'{stock_data["实时行情"]["换手率"]}%'],
+    ]
+    
+    for info in info_data:
+        row_cells = info_table.add_row().cells
+        row_cells[0].text = info[0]
+        row_cells[1].text = str(info[1])
+    
+    # 添加AI分析报告
+    doc.add_heading('AI分析报告', level=1)
+    doc.add_paragraph(analysis_report)
+    
+    # 添加图表
+    doc.add_heading('股价走势图', level=1)
+    if charts_data:
+        doc.add_paragraph('以下是该股票的价格走势和成交量图:')
+        
+        # 添加趋势图
+        if 'trend' in charts_data and charts_data['trend']:
+            doc.add_heading('价格趋势图', level=2)
+            doc.add_paragraph('显示股票价格的走势及主要移动平均线:')
+            # 如果是BytesIO对象
+            if hasattr(charts_data['trend'], 'getvalue'):
+                try:
+                    # 将BytesIO保存为临时文件再添加到文档
+                    temp_path = f"temp_trend_chart_{int(time.time())}.png"
+                    with open(temp_path, 'wb') as f:
+                        f.write(charts_data['trend'].getvalue())
+                    doc.add_picture(temp_path, width=Inches(6))
+                    doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    # 删除临时文件
+                    os.remove(temp_path)
+                except Exception as e:
+                    print(f"添加趋势图失败: {e}")
+    
+    # 添加风险提示
+    doc.add_heading('风险提示', level=1)
+    risk_paragraph = doc.add_paragraph()
+    risk_paragraph.add_run('投资有风险，决策需谨慎。以上分析仅供参考，不构成投资建议。').bold = True
+    risk_paragraph.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    
+    # 将文档保存到内存中的BytesIO对象
+    buffer = BytesIO()
+    doc.save(buffer)
+    buffer.seek(0)
+    
+    return buffer
+```
+
+图片占位符: [在此处插入Word报告示例截图]
+
+## 幻灯片 12: 用户界面展示
+标题: 直观易用的Web界面
+内容:
+- 股票代码输入区
+- 日期选择模式（指定日期/最近天数/从某天开始持续）
+- 分析问题输入
+- 实时分析结果展示
+- 图表可视化区域
+- Word报告下载按钮
+
+核心代码示例:
+```python
+def create_quant_interface():
+    with gr.Blocks(title="专业量化股票分析系统（含Word报告下载）", theme=gr.themes.Soft()) as demo:
+        gr.Markdown("""
+        # 📊 专业量化股票分析系统（含Word报告下载）
+        ### 数据驱动 • 专业分析 • 智能决策 • 一键下载报告
+        """)
+
+        with gr.Row():
+            with gr.Column(scale=3):
+                # 股票代码输入
+                symbol_input = gr.Textbox(
+                    label="股票代码",
+                    value="000001",
+                    placeholder="请输入股票代码，如：000001、600519等",
+                    max_lines=1
+                )
+
+                # 日期选择
+                with gr.Row():
+                    date_mode = gr.Radio(
+                        choices=["指定日期", "最近天数", "从某天开始持续"],
+                        value="指定日期",
+                        label="日期选择模式"
+                    )
+                
+                with gr.Row(visible=True) as date_row:
+                    start_date_input = gr.Textbox(
+                        label="开始日期 (YYYY-MM-DD)",
+                        value="",
+                        placeholder="如：2024-01-01，留空则分析最近数据",
+                        max_lines=1
+                    )
+                    end_date_input = gr.Textbox(
+                        label="结束日期 (YYYY-MM-DD)",
+                        value="",
+                        placeholder="如：2024-12-31，留空则使用当前日期",
+                        max_lines=1
+                    )
+                
+                # 问题输入
+                question_input = gr.Textbox(
+                    label="分析问题",
+                    value="请生成完整的量化分析报告",
+                    placeholder="例如：分析技术面走势、评估基本面价值等",
+                    lines=3
+                )
+
+                # 分析按钮
+                analyze_btn = gr.Button("开始专业分析", variant="primary", size="lg")
+
+                # 分析结果显示
+                analysis_output = gr.Markdown(
+                    label="量化分析报告",
+                    value="等待分析...",
+                    elem_id="analysis-output"
+                )
+
+            with gr.Column(scale=2):
+                # 图表显示区域
+                with gr.Tabs():
+                    with gr.TabItem("📈 价格趋势"):
+                        trend_chart = gr.Image(label="价格趋势图", type="pil")
+
+                    with gr.TabItem("📊 成交量"):
+                        volume_chart = gr.Image(label="成交量图", type="pil")
+
+                    with gr.TabItem("📉 技术指标"):
+                        rsi_chart = gr.Image(label="RSI指标图", type="pil")
+
+                # 数据摘要
+                data_summary = gr.JSON(
+                    label="原始数据摘要",
+                    value={}
+                )
+                
+                # Word报告下载
+                word_download = gr.File(
+                    label="Word报告下载",
+                    interactive=False
+                )
+        
+        # 绑定分析事件
+        analyze_btn.click(
+            perform_analysis,
+            inputs=[symbol_input, date_mode, start_date_input, end_date_input, recent_days, 
+                   start_date_duration, duration_type, duration_value, question_input, analysis_state],
+            outputs=[analysis_output, trend_chart, volume_chart, rsi_chart, data_summary, word_download, analysis_state]
+        )
+    
+    return demo
+```
+
+图片占位符: [在此处插入Web界面完整截图]
+
+## 幻灯片 13: 功能演示
+标题: 实际操作演示
+内容:
+- 股票代码输入示例（如000001）
+- 选择分析时间段
+- 输入分析问题
+- 点击开始分析
+- 查看AI生成的分析报告
+- 查看可视化图表
+- 下载Word报告
+
+图片占位符: [在此处插入实际操作步骤截图]
+
+## 幻灯片 14: 项目优势
+标题: 系统优势对比
+内容:
+- 操作便捷性: 从命令行到Web界面
+- 分析深度: 从基础指标到AI驱动的多维度分析
+- 可视化: 从无图表到专业图表展示
+- 报告生成: 从无到一键生成专业Word报告
+- 数据完整性: 从单一数据到多维度数据整合
+
+图片占位符: [在此处插入优势对比图表]
+
+## 幻灯片 15: 应用场景
+标题: 多样化应用场景
+内容:
+- 个人投资者: 辅助投资决策
+- 金融机构: 研究支持工具
+- 教育培训: 量化分析教学
+- 研究分析: 技术指标验证
+
+图片占位符: [在此处插入应用场景示意图]
+
+## 幻灯片 16: 总结
+标题: 项目成果总结
+内容:
+- 成功从命令行工具演进为Web界面系统
+- 实现数据获取、分析、报告生成全流程
+- 技术架构稳定可靠
+- 用户体验显著提升
+- 具备商业化潜力
+
+图片占位符: [在此处插入系统架构总结图]
